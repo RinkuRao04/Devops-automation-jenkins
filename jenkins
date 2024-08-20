@@ -1,0 +1,35 @@
+pipeline {
+    agent any
+    tools{
+        maven 'maven_3_5_0'
+    }
+    stages{
+        stage('Build Maven'){
+            steps{
+                checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/RinkuRao04/Devops-automation-jenkins.git']]])
+                sh 'mvn clean install'
+            }
+        }
+        stage('Build docker image'){
+            steps{
+                script{
+                    sh 'docker build -t rinkukunwarrao/jenkins-image-auto .'
+                }
+            }
+        }
+        stage('Push image to Hub'){
+            steps{
+                script{
+                withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')]) {
+                sh 'docker login -u rinkukunwarrao -p ${dockerhubpwd}'
+}
+                   
+
+
+                   sh 'docker push rinkukunwarrao/jenkins-image-auto'
+                }
+            }
+        }
+        
+    }
+}
