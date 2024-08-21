@@ -114,7 +114,7 @@ pipeline {
                 script {
                     // Substitute environment variables in Docker Compose file
                     sh '''
-                    envsubst '${IMAGE_TAG}' < docker-compose.yml.template > docker-compose.yml
+                    envsubst '${IMAGE_TAG}' < Docker-compose.yml
                     '''
                 }
             }
