@@ -105,8 +105,8 @@ pipeline {
         stage('Push Image to Hub') {
             steps {
                 script {
-                    withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'DOCKERHUB_PWD')]) {
-                        sh 'docker login -u rinkukunwarrao -p ${DOCKERHUB_PWD}'
+                    withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')]) {
+                        sh 'docker login -u rinkukunwarrao -p ${dockerhubpwd}'
                         sh 'docker push rinkukunwarrao/dev:latest'
                     }
                 }
@@ -116,7 +116,7 @@ pipeline {
         stage('Check Docker-compose.yml Presence') {
             steps {
                 script {
-                    sh 'ls -l Docker-compose.yml'
+                    sh 'ls -l docker-compose.yml'
                 }
             }
         }
@@ -125,10 +125,10 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    envsubst '${IMAGE_TAG}' < Docker-compose.yml > Docker-compose-processed.yml
+                    envsubst '${IMAGE_TAG}' < docker-compose.yml > Docker-compose-processed.yml
                     '''
-                    sh 'ls -l Docker-compose-processed.yml'
-                    sh 'cat Docker-compose-processed.yml'
+                    sh 'ls -l docker-compose-processed.yml'
+                    sh 'cat docker-compose-processed.yml'
                 }
             }
         }
