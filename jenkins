@@ -117,7 +117,7 @@ pipeline {
             steps {
                 script {
                     sh '''
-                    envsubst '${IMAGE_TAG}' < docker-compose.yaml > Docker-compose-processed.yml
+                    envsubst < docker-compose.yaml > Docker-compose-processed.yml
                     '''
                     sh 'ls -l Docker-compose-processed.yml'
                     sh 'cat Docker-compose-processed.yml'
