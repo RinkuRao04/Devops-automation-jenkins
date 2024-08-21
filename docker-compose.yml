@@ -4,7 +4,7 @@ version: "3.8"
 services:
   # my application name is app-dev
   app-dev:
-    image: rinkukunwarrao/dev:$image_tag
+    image: rinkukunwarrao/dev:${image_tag}
     build:
       # context is the path to the Dockerfile where i want to run the docker-compose
       context: .

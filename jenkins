@@ -1,79 +1,8 @@
-// pipeline {
-//     agent any
-//     environment {
-//         image_tag = 'latest' // You can adjust this as needed or make it a parameter
-//          p = sh 'echo $PATH'
-//         PATH = p + ':/usr/local/bin/docker-compose'
-//     }
-
-//     stages{
-//         stage('Build '){
-//             steps{
-//                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/RinkuRao04/Devops-automation-jenkins.git']])
-               
-               
-//             }
-//         }
-
-
-//         stage('Build docker image'){
-//             steps{
-//                 script{
-//                     sh 'docker build -t reactimage .'
-//                     sh 'docker tag reactimage:latest rinkukunwarrao/dev:latest'
-
-//                 }
-//             }
-//         }
-//         stage('Push image to Hub'){
-//             steps{
-//                 script{
-//                withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')])  {
-//                 sh 'docker login -u rinkukunwarrao -p ${dockerhubpwd}'
-//                  sh 'docker push rinkukunwarrao/dev:latest'
-                
-//                 }       
-//               }
-//             }
-//         }
-//         // stage('Deploy')
-//         // {
-//         //     steps {
-//         //         script {
-//         //             def dockerCmd = 'docker run -itd --name react_container-p 3000:3000 rinkukunwarrao/dev:latest'
-//         //             sshagent (['sshkeypair'])
-//         //         }
-//         //     }
-//         // }
-        
-       
-//         stage ('Override env variable') {
-//             steps {
-//                 script {
-//                     sh 'git checkout main'
-//                     sh'''
-//                     envsubst '$image_tag' <Docker-compose.yml > output.txt
-//                     '''
-//                 }
-//             }
-//         }
-//          stage('Build and Deploy') {
-//             steps {
-//                 script {
-//                     // Run Docker Compose commands
-//                     sh 'docker-compose up -d'
-//                 }
-//             }
-//         }
-//     }
-// }
-
 pipeline {
     agent any
 
     environment {
-        // Define the environment variables
-        IMAGE_TAG = 'latest' // Updated variable name to uppercase as per convention
+        IMAGE_TAG = 'latest' // Define environment variable
     }
 
     stages {
@@ -84,6 +13,15 @@ pipeline {
                     branches: [[name: '*/main']],
                     userRemoteConfigs: [[url: 'https://github.com/RinkuRao04/Devops-automation-jenkins.git']]
                 )
+            }
+        }
+
+        stage('List Files') {
+            steps {
+                script {
+                    // List files to verify that Dockerfile and Docker-compose.yml are present
+                    sh 'ls -l'
+                }
             }
         }
 
@@ -112,10 +50,17 @@ pipeline {
         stage('Override Environment Variable') {
             steps {
                 script {
+                    // Verify that Docker-compose.yml exists before processing
+                    sh 'ls -l Docker-compose.yml'
+
                     // Substitute environment variables in Docker Compose file
                     sh '''
-                    envsubst '${IMAGE_TAG}' < Docker-compose.yml
+                    envsubst '${IMAGE_TAG}' < Docker-compose.yml > Docker-compose-processed.yml
                     '''
+
+                    // Verify the processed Docker Compose file
+                    sh 'ls -l Docker-compose-processed.yml'
+                    sh 'cat Docker-compose-processed.yml'
                 }
             }
         }
@@ -123,8 +68,8 @@ pipeline {
         stage('Build and Deploy') {
             steps {
                 script {
-                    // Run Docker Compose commands
-                    sh 'docker-compose up -d'
+                    // Use the processed Docker Compose file for deployment
+                    sh 'docker-compose -f Docker-compose-processed.yml up -d'
                 }
             }
         }
