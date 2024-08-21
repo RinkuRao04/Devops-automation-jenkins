@@ -47,7 +47,7 @@ pipeline {
         // }
         stage('docker compose update'){
             steps{
-               sh "sed -i 's|image: .*|image: ${IMAGE_TAG}|' /docker-compose.yml"
+               sh "sed -i 's|image: .*|image: ${IMAGE_TAG}|' docker-compose.yml"
             }
         }
        
