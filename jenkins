@@ -117,6 +117,7 @@ pipeline {
             steps {
                 script {
                     sh '''
+                    apk add --no-cache gettext
                     envsubst < docker-compose.yaml > Docker-compose-processed.yml
                     '''
                     sh 'ls -l Docker-compose-processed.yml'
