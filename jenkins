@@ -1,51 +1,56 @@
-// pipeline {
-//     agent any
-//     environment {
-//         image_tag = 'latest' // You can adjust this as needed or make it a parameter
-//          p = sh 'echo $PATH'
-//         PATH = p + ':/usr/local/bin/docker-compose'
-//     }
+pipeline {
+    agent any
+    // environment {
+    //     image_tag = 'latest' // You can adjust this as needed or make it a parameter
+    //      p = sh 'echo $PATH'
+    //     PATH = p + ':/usr/local/bin/docker-compose'
+    // }
 
-//     stages{
-//         stage('Build '){
-//             steps{
-//                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/RinkuRao04/Devops-automation-jenkins.git']])
+    stages{
+        stage('Build '){
+            steps{
+               checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/RinkuRao04/Devops-automation-jenkins.git']])
                
                
-//             }
-//         }
+            }
+        }
 
 
-//         stage('Build docker image'){
-//             steps{
-//                 script{
-//                     sh 'docker build -t reactimage .'
-//                     sh 'docker tag reactimage:latest rinkukunwarrao/dev:latest'
+        stage('Build docker image'){
+            steps{
+                script{
+                    sh 'docker build -t reactimage .'
+                    sh 'docker tag reactimage:latest rinkukunwarrao/dev:latest'
 
-//                 }
-//             }
-//         }
-//         stage('Push image to Hub'){
-//             steps{
-//                 script{
-//                withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')])  {
-//                 sh 'docker login -u rinkukunwarrao -p ${dockerhubpwd}'
-//                  sh 'docker push rinkukunwarrao/dev:latest'
+                }
+            }
+        }
+        stage('Push image to Hub'){
+            steps{
+                script{
+               withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')])  {
+                sh 'docker login -u rinkukunwarrao -p ${dockerhubpwd}'
+                 sh 'docker push rinkukunwarrao/dev:latest'
                 
-//                 }       
-//               }
-//             }
-//         }
-//         // stage('Deploy')
-//         // {
-//         //     steps {
-//         //         script {
-//         //             def dockerCmd = 'docker run -itd --name react_container-p 3000:3000 rinkukunwarrao/dev:latest'
-//         //             sshagent (['sshkeypair'])
-//         //         }
-//         //     }
-//         // }
-        
+                }       
+              }
+            }
+        }
+        // stage('Deploy')
+        // {
+        //     steps {
+        //         script {
+        //             def dockerCmd = 'docker run -itd --name react_container-p 3000:3000 rinkukunwarrao/dev:latest'
+        //             sshagent (['sshkeypair'])
+        //         }
+        //     }
+        // }
+        stage('docker compose update'){
+            steps{
+               sh "sed -i 's|image: .*|image: ${DOCKER_IMAGE}|' react-deploy/docker-compose.yml"
+            }
+        }
+       
        
 //         stage ('Override env variable') {
 //             steps {
@@ -57,99 +62,13 @@
 //                 }
 //             }
 //         }
-//          stage('Build and Deploy') {
-//             steps {
-//                 script {
-//                     // Run Docker Compose commands
-//                     sh 'docker-compose up -d'
-//                 }
-//             }
-//         }
-//     }
-// }
-
-pipeline {
-    agent any
-
-    environment {
-        IMAGE_TAG = 'latest'
-    }
-
-    stages {
-        stage('Checkout') {
-            steps {
-                checkout scmGit(
-                    branches: [[name: '*/main']],
-                    userRemoteConfigs: [[url: 'https://github.com/RinkuRao04/Devops-automation-jenkins.git']]
-                )
-            }
-        }
-
-        stage('List Files After Checkout') {
+         stage('Build and Deploy') {
             steps {
                 script {
-                    sh 'ls -l'
+                    // Run Docker Compose commands
+                    sh 'docker-compose up -d'
                 }
             }
-        }
-
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    sh 'docker build -t reactimage .'
-                    sh 'docker tag reactimage:latest rinkukunwarrao/dev:latest'
-                }
-            }
-        }
-
-        stage('Push Image to Hub') {
-            steps {
-                script {
-                    withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')]) {
-                        sh 'docker login -u rinkukunwarrao -p ${dockerhubpwd}'
-                        sh 'docker push rinkukunwarrao/dev:latest'
-                    }
-                }
-            }
-        }
-
-        stage('Override Environment Variable') {
-            steps {
-                script {
-                    sh '''
-                    apk add --no-cache gettext
-                    envsubst < docker-compose.yaml > Docker-compose-processed.yml
-                    '''
-                    sh 'ls -l Docker-compose-processed.yml'
-                    sh 'cat Docker-compose-processed.yml'
-                }
-            }
-        }
-
-        stage('Build and Deploy') {
-            steps {
-                script {
-                    sh 'docker-compose -f Docker-compose-processed.yml up -d'
-                }
-            }
-        }
-
-        stage('Check Docker-compose.yml Presence') {
-            steps {
-                script {
-                    sh 'ls -l docker-compose.yaml'
-                }
-            }
-        }
-
-        
-
-        
-    }
-
-    post {
-        always {
-            cleanWs()
         }
     }
 }
