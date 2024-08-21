@@ -48,8 +48,9 @@ pipeline {
         stage ('Override env variable') {
             steps {
                 script {
-                    
+                    sh'''
                     envsubst '$image_tag' < Docker-compose.yml > output.txt
+                    '''
                 }
             }
         }
