@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment {
-        image_tag = 'latest' // You can adjust this as needed or make it a parameter
+        IMAGE_TAG = 'latest' // You can adjust this as needed or make it a parameter
         //  p = sh 'echo $PATH'
         // PATH = p + ':/usr/local/bin/docker-compose'
     }
