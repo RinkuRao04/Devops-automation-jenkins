@@ -2,13 +2,12 @@ pipeline {
     agent any
 
     environment {
-        IMAGE_TAG = 'latest' // Define environment variable
+        IMAGE_TAG = 'latest'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // Checkout the code from the specified Git repository
                 checkout scmGit(
                     branches: [[name: '*/main']],
                     userRemoteConfigs: [[url: 'https://github.com/RinkuRao04/Devops-automation-jenkins.git']]
@@ -19,7 +18,6 @@ pipeline {
         stage('List Files') {
             steps {
                 script {
-                    // List files to verify that Dockerfile and Docker-compose.yml are present
                     sh 'ls -l'
                 }
             }
@@ -28,7 +26,6 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build and tag the Docker image
                     sh 'docker build -t reactimage .'
                     sh 'docker tag reactimage:latest rinkukunwarrao/dev:latest'
                 }
@@ -38,7 +35,6 @@ pipeline {
         stage('Push Image to Hub') {
             steps {
                 script {
-                    // Login to Docker Hub and push the image
                     withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'DOCKERHUB_PWD')]) {
                         sh 'docker login -u rinkukunwarrao -p ${DOCKERHUB_PWD}'
                         sh 'docker push rinkukunwarrao/dev:latest'
@@ -47,26 +43,13 @@ pipeline {
             }
         }
 
-        stages {
-            stage('Checkout') {
-                steps {
-                    // Checkout the code from version control
-                    checkout scm
-                }
-            }
-        }
         stage('Override Environment Variable') {
             steps {
                 script {
-                    // Verify that Docker-compose.yml exists before processing
                     sh 'ls -l Docker-compose.yml'
-
-                    // Substitute environment variables in Docker Compose file
                     sh '''
                     envsubst '${IMAGE_TAG}' < Docker-compose.yml > Docker-compose-processed.yml
                     '''
-
-                    // Verify the processed Docker Compose file
                     sh 'ls -l Docker-compose-processed.yml'
                     sh 'cat Docker-compose-processed.yml'
                 }
@@ -76,7 +59,6 @@ pipeline {
         stage('Build and Deploy') {
             steps {
                 script {
-                    // Use the processed Docker Compose file for deployment
                     sh 'docker-compose -f Docker-compose-processed.yml up -d'
                 }
             }
@@ -85,7 +67,6 @@ pipeline {
 
     post {
         always {
-            // Clean up workspace after the pipeline execution
             cleanWs()
         }
     }
