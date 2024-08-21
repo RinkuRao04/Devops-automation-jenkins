@@ -9,7 +9,7 @@ services:
       # context is the path to the Dockerfile where i want to run the docker-compose
       context: .
       # dockerfile is the name of the dockerfile which i created in the root directory of the project
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     # ports is the port number where i want to run my application locally:container-port
     ports:
       - "3000:3000"
