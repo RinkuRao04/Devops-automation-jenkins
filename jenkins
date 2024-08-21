@@ -1,66 +1,139 @@
+// pipeline {
+//     agent any
+//     environment {
+//         image_tag = 'latest' // You can adjust this as needed or make it a parameter
+//          p = sh 'echo $PATH'
+//         PATH = p + ':/usr/local/bin/docker-compose'
+//     }
+
+//     stages{
+//         stage('Build '){
+//             steps{
+//                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/RinkuRao04/Devops-automation-jenkins.git']])
+               
+               
+//             }
+//         }
+
+
+//         stage('Build docker image'){
+//             steps{
+//                 script{
+//                     sh 'docker build -t reactimage .'
+//                     sh 'docker tag reactimage:latest rinkukunwarrao/dev:latest'
+
+//                 }
+//             }
+//         }
+//         stage('Push image to Hub'){
+//             steps{
+//                 script{
+//                withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')])  {
+//                 sh 'docker login -u rinkukunwarrao -p ${dockerhubpwd}'
+//                  sh 'docker push rinkukunwarrao/dev:latest'
+                
+//                 }       
+//               }
+//             }
+//         }
+//         // stage('Deploy')
+//         // {
+//         //     steps {
+//         //         script {
+//         //             def dockerCmd = 'docker run -itd --name react_container-p 3000:3000 rinkukunwarrao/dev:latest'
+//         //             sshagent (['sshkeypair'])
+//         //         }
+//         //     }
+//         // }
+        
+       
+//         stage ('Override env variable') {
+//             steps {
+//                 script {
+//                     sh 'git checkout main'
+//                     sh'''
+//                     envsubst '$image_tag' <Docker-compose.yml > output.txt
+//                     '''
+//                 }
+//             }
+//         }
+//          stage('Build and Deploy') {
+//             steps {
+//                 script {
+//                     // Run Docker Compose commands
+//                     sh 'docker-compose up -d'
+//                 }
+//             }
+//         }
+//     }
+// }
+
 pipeline {
     agent any
+
     environment {
-        image_tag = 'latest' // You can adjust this as needed or make it a parameter
+        // Define the environment variables
+        IMAGE_TAG = 'latest' // Updated variable name to uppercase as per convention
     }
 
-    stages{
-        stage('Build '){
-            steps{
-               checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/RinkuRao04/Devops-automation-jenkins.git']])
-               
-               
+    stages {
+        stage('Checkout') {
+            steps {
+                // Checkout the code from the specified Git repository
+                checkout scmGit(
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[url: 'https://github.com/RinkuRao04/Devops-automation-jenkins.git']]
+                )
             }
         }
 
-
-        stage('Build docker image'){
-            steps{
-                script{
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    // Build and tag the Docker image
                     sh 'docker build -t reactimage .'
                     sh 'docker tag reactimage:latest rinkukunwarrao/dev:latest'
-
                 }
             }
         }
-        stage('Push image to Hub'){
-            steps{
-                script{
-               withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')])  {
-                sh 'docker login -u rinkukunwarrao -p ${dockerhubpwd}'
-                 sh 'docker push rinkukunwarrao/dev:latest'
-                
-                }       
-              }
-            }
-        }
-        // stage('Deploy')
-        // {
-        //     steps {
-        //         script {
-        //             def dockerCmd = 'docker run -itd --name react_container-p 3000:3000 rinkukunwarrao/dev:latest'
-        //             sshagent (['sshkeypair'])
-        //         }
-        //     }
-        // }
-        
-       
-        stage ('Override env variable') {
+
+        stage('Push Image to Hub') {
             steps {
                 script {
-                    sh'''
-                    envsubst '$image_tag' < Docker-compose.yml > output.txt
+                    // Login to Docker Hub and push the image
+                    withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'DOCKERHUB_PWD')]) {
+                        sh 'docker login -u rinkukunwarrao -p ${DOCKERHUB_PWD}'
+                        sh 'docker push rinkukunwarrao/dev:latest'
+                    }
+                }
+            }
+        }
+
+        stage('Override Environment Variable') {
+            steps {
+                script {
+                    // Substitute environment variables in Docker Compose file
+                    sh '''
+                    envsubst '${IMAGE_TAG}' < docker-compose.yml.template > docker-compose.yml
                     '''
                 }
             }
         }
-         stage('Build and Deploy') {
+
+        stage('Build and Deploy') {
             steps {
                 script {
                     // Run Docker Compose commands
                     sh 'docker-compose up -d'
                 }
             }
+        }
+    }
+
+    post {
+        always {
+            // Clean up workspace after the pipeline execution
+            cleanWs()
         }
     }
 }
