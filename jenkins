@@ -113,22 +113,14 @@ pipeline {
             }
         }
 
-        stage('Check Docker-compose.yml Presence') {
-            steps {
-                script {
-                    sh 'ls -l docker-compose.yml'
-                }
-            }
-        }
-
         stage('Override Environment Variable') {
             steps {
                 script {
                     sh '''
-                    envsubst '${IMAGE_TAG}' < docker-compose.yml > Docker-compose-processed.yml
+                    envsubst '${IMAGE_TAG}' < docker-compose.yaml > Docker-compose-processed.yml
                     '''
-                    sh 'ls -l docker-compose-processed.yml'
-                    sh 'cat docker-compose-processed.yml'
+                    sh 'ls -l Docker-compose-processed.yml'
+                    sh 'cat Docker-compose-processed.yml'
                 }
             }
         }
@@ -140,6 +132,18 @@ pipeline {
                 }
             }
         }
+
+        stage('Check Docker-compose.yml Presence') {
+            steps {
+                script {
+                    sh 'ls -l docker-compose.yaml'
+                }
+            }
+        }
+
+        
+
+        
     }
 
     post {
