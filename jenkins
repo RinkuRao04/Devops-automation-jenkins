@@ -1,35 +1,44 @@
 pipeline {
     agent any
     tools{
-        maven 'Maven3'
+        nodejs 'nodejs'
     }
     stages{
-        stage('Build Maven'){
+        stage('Build '){
             steps{
                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/RinkuRao04/Devops-automation-jenkins.git']])
+               sh'npm install'
                
             }
         }
         stage('Build docker image'){
             steps{
                 script{
-                    sh 'docker build -t rinkukunwarrao/jenkins-image-auto .'
+                    sh 'docker build -t reactimage .'
+                    sh 'docker tag reactimage:latest rinkukunwarrao/dev:latest'
+
                 }
             }
         }
         stage('Push image to Hub'){
             steps{
                 script{
-                withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')]) {
+               withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')])  {
                 sh 'docker login -u rinkukunwarrao -p ${dockerhubpwd}'
-}
-                   
-
-
-                   sh 'docker push rinkukunwarrao/jenkins-image-auto'
-                }
+                 sh 'docker push rinkukunwarrao/dev:latest'
+                
+                }       
+              }
             }
         }
-        
+        // stage('Deploy')
+        // {
+        //     steps {
+        //         script {
+        //             def dockerCmd = 'docker run -itd --name react_container-p 3000:3000 rinkukunwarrao/dev:latest'
+        //             sshagent (['sshkeypair'])
+        //         }
+        //     }
+        // }
     }
 }
