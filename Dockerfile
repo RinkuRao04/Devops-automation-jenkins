@@ -19,3 +19,8 @@ EXPOSE 3000
 
 # npm run start to run the app
 CMD [ "npm","run","start" ]
+
+FROM nginx:latest
+COPY --from=builder /app/build /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]

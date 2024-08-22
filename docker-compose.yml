@@ -12,7 +12,7 @@ services:
       dockerfile: Dockerfile
     # ports is the port number where i want to run my application locally:container-port
     ports:
-      - "3000:3000"
+      - "3000:80"
     # volumes is the path to the project directory where i want to run the docker-compose
     # it stores the data in the container and syncs it with the project container data when we sotp or start the container. localdireatory:containerdirectory
     # volumes:
